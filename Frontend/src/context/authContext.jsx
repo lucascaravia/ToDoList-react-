@@ -40,17 +40,29 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  const signin = async (user) => {
+  const signin = async (userData) => {
     try {
-      const res = await loginRequest(user);
-      setUser(res.data);
-      setIsAuthenticated(true);
+      const res = await loginRequest(userData);
+      console.log("🔍 Respuesta del backend en login:", res.data); // Depuración
+  
+      if (res.status === 200) {
+        const { token, user } = res.data;
+  
+        if (!token) {
+          console.log("❌ No se recibió token en la respuesta del backend");
+          return;
+        }
+  
+        localStorage.setItem("token", token); // 🔥 Guardar el token en localStorage
+        setUser(user);
+        setIsAuthenticated(true);
+      }
     } catch (error) {
-      console.log(error);
-      // setErrors(error.response.data.message);
+      console.error("❌ Error en login:", error.response?.data || error);
+      setErrors(error.response?.data?.message || ["Error desconocido"]);
     }
   };
-
+  
   const logout = () => {
     Cookies.remove("token");
     setUser(null);
