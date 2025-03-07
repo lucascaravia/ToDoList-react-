@@ -11,16 +11,16 @@ export const getTasks = async (req, res) => {
 
 export const createTask = async (req, res) => {
   try {
+    if (!req.user || !req.user.id) {
+      return res.status(401).json({ message: "Usuario no autenticado" });
+    }
+
     const { title, description, date } = req.body;
-    const newTask = new Task({
-      title,
-      description,
-      date,
-      user: req.user.id,
-    });
+    const newTask = new Task({ title, description, date, user: req.user.id });
     await newTask.save();
-    res.json(newTask);
+    return res.json(newTask);
   } catch (error) {
+    console.error("❌ Error creando tarea:", error);
     return res.status(500).json({ message: error.message });
   }
 };
@@ -28,9 +28,7 @@ export const createTask = async (req, res) => {
 export const deleteTask = async (req, res) => {
   try {
     const deletedTask = await Task.findByIdAndDelete(req.params.id);
-    if (!deletedTask)
-      return res.status(404).json({ message: "Task not found" });
-
+    if (!deletedTask) return res.status(404).json({ message: "Task not found" });
     return res.sendStatus(204);
   } catch (error) {
     return res.status(500).json({ message: error.message });
